@@ -1,27 +1,12 @@
-package javasrc;
-
 import java.util.*;
 
-/**
- * Represents a Non-Deterministic Finite Automaton (NFA).
- * This class encapsulates the structure and behavior of an NFA.
- */
 class NFA {
-    int cardinality; // Number of states in the NFA
-    Set<Character> alphabet; // Set of input symbols
-    Set<Integer> finalStates; // Set of final states
-    int startState; // Start state of the NFA
-    Set<Transition> transitions; // Set of transitions
+    int cardinality;
+    Set<Character> alphabet;
+    Set<Integer> finalStates;
+    int startState;
+    Set<Transition> transitions;
 
-    /**
-     * Constructs an NFA with the given parameters.
-     *
-     * @param cardinality Number of states in the NFA
-     * @param alphabet Set of input symbols
-     * @param finalStates Set of final states
-     * @param startState Start state of the NFA
-     * @param transitions Set of transitions
-     */
     public NFA(int cardinality, Set<Character> alphabet, Set<Integer> finalStates, int startState, Set<Transition> transitions) {
         this.cardinality = cardinality;
         this.alphabet = alphabet;
@@ -31,22 +16,11 @@ class NFA {
     }
 }
 
-/**
- * Represents a transition in an automaton.
- * This class encapsulates the from state, input symbol, and to state of a transition.
- */
 class Transition {
-    int fromState; // Source state of the transition
-    char input; // Input symbol of the transition
-    int toState; // Destination state of the transition
+    int fromState;
+    char input;
+    int toState;
 
-    /**
-     * Constructs a transition with the given parameters.
-     *
-     * @param fromState Source state of the transition
-     * @param input Input symbol of the transition
-     * @param toState Destination state of the transition
-     */
     public Transition(int fromState, char input, int toState) {
         this.fromState = fromState;
         this.input = input;
@@ -54,26 +28,13 @@ class Transition {
     }
 }
 
-/**
- * Represents a Deterministic Finite Automaton (DFA).
- * This class encapsulates the structure and behavior of a DFA.
- */
 class DFA {
-    int cardinality; // Number of states in the DFA
-    Set<Character> alphabet; // Set of input symbols
-    Set<Integer> finalStates; // Set of final states
-    int startState; // Start state of the DFA
-    Set<Transition> transitions; // Set of transitions
+    int cardinality;
+    Set<Character> alphabet;
+    Set<Integer> finalStates;
+    int startState;
+    Set<Transition> transitions;
 
-    /**
-     * Constructs a DFA with the given parameters.
-     *
-     * @param cardinality Number of states in the DFA
-     * @param alphabet Set of input symbols
-     * @param finalStates Set of final states
-     * @param startState Start state of the DFA
-     * @param transitions Set of transitions
-     */
     public DFA(int cardinality, Set<Character> alphabet, Set<Integer> finalStates, int startState, Set<Transition> transitions) {
         this.cardinality = cardinality;
         this.alphabet = alphabet;
@@ -82,10 +43,6 @@ class DFA {
         this.transitions = transitions;
     }
 
-    /**
-     * Outputs the DFA structure.
-     * Prints the number of states, alphabet, final states, start state, and transitions.
-     */
     public void output() {
         System.out.println(cardinality);
         for (char c : alphabet) {
@@ -103,38 +60,24 @@ class DFA {
     }
 }
 
-/**
- * Converts an NFA to a DFA.
- * This class provides a method to convert an NFA to an equivalent DFA using the subset construction algorithm.
- *
- * @author Gao Junran
- */
-public class NfaToDfaConverter {
-    /**
-     * Converts an NFA to a DFA.
-     *
-     * @param nfa The input NFA to be converted
-     * @return The resulting DFA
-     */
+public class NfaToDfa {
     public static DFA convertNFAToDFA(NFA nfa) {
-        Set<Transition> dfaTransitions = new HashSet<>(); // Set of transitions for the resulting DFA
-        Map<Set<Integer>, Integer> stateMapping = new HashMap<>(); // Maps NFA state sets to DFA state IDs
+        Set<Transition> dfaTransitions = new HashSet<>();
+        Map<Set<Integer>, Integer> stateMapping = new HashMap<>(); // Map to store NFA state sets to DFA state IDs
         Queue<Set<Integer>> queue = new ArrayDeque<>(); // Queue to process subset states
 
-        // Initialize the start state of the DFA
         Set<Integer> startSet = new HashSet<>();
         startSet.add(nfa.startState); // Initial DFA state from NFA start state
         queue.add(startSet);
         stateMapping.put(startSet, 0);
 
-        Set<Integer> dfaFinalStates = new HashSet<>(); // Set of final states in the DFA
-        Set<Character> dfaAlphabet = nfa.alphabet; // Alphabet of the DFA is the same as the NFA
-        int stateCounter = 1; // Counter for DFA state IDs
+        Set<Integer> dfaFinalStates = new HashSet<>();
+        Set<Character> dfaAlphabet = nfa.alphabet;
+        int stateCounter = 1;
 
-        // Process each subset state
         while (!queue.isEmpty()) {
-            Set<Integer> currentStateSet = queue.poll(); // Get the current subset state
-            int dfaStateId = stateMapping.get(currentStateSet); // Get the DFA state ID for the current subset state
+            Set<Integer> currentStateSet = queue.poll();
+            int dfaStateId = stateMapping.get(currentStateSet);
 
             // Check if the current DFA state contains any NFA final states
             if (!Collections.disjoint(currentStateSet, nfa.finalStates)) {
@@ -152,8 +95,6 @@ public class NfaToDfaConverter {
                         }
                     }
                 }
-
-                // If there are next states, add a transition to the DFA
                 if (!nextStateSet.isEmpty()) {
                     if (!stateMapping.containsKey(nextStateSet)) {
                         // Assign a new DFA state ID to the next NFA state set
@@ -165,7 +106,6 @@ public class NfaToDfaConverter {
             }
         }
 
-        // Construct and return the resulting DFA
         return new DFA(
                 stateMapping.size(), // Total number of states in DFA
                 dfaAlphabet, // Same alphabet as NFA
@@ -175,39 +115,29 @@ public class NfaToDfaConverter {
         );
     }
 
-    /**
-     * Main method to read NFA input and convert it to a DFA.
-     *
-     * @param args Command-line arguments (not used)
-     */
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-
-        // Read NFA input
-        int cardinality = Integer.parseInt(scanner.nextLine()); // Number of states
+        int cardinality = Integer.parseInt(scanner.nextLine());
         Set<Character> alphabet = new HashSet<>();
         for (char c : scanner.nextLine().toCharArray()) {
-            alphabet.add(c); // Set of input symbols
+            alphabet.add(c);
         }
         Set<Integer> finalStates = new HashSet<>();
         for (String s : scanner.nextLine().split(" ")) {
-            finalStates.add(Integer.parseInt(s)); // Set of final states
+            finalStates.add(Integer.parseInt(s));
         }
-        int startState = Integer.parseInt(scanner.nextLine()); // Start state
+        int startState = Integer.parseInt(scanner.nextLine());
         Set<Transition> transitions = new HashSet<>();
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (line.isEmpty()) break; // End of transitions
+            if (line.isEmpty()) break;
             String[] parts = line.split(" ");
-            transitions.add(new Transition(Integer.parseInt(parts[0]), parts[1].charAt(0), Integer.parseInt(parts[2]))); // Read transitions
+            transitions.add(new Transition(Integer.parseInt(parts[0]), parts[1].charAt(0), Integer.parseInt(parts[2])));
         }
         scanner.close();
 
-        // Create NFA and convert to DFA
         NFA nfa = new NFA(cardinality, alphabet, finalStates, startState, transitions);
         DFA dfa = convertNFAToDFA(nfa);
-
-        // Output the resulting DFA
         dfa.output();
     }
 }
