@@ -17,12 +17,13 @@ class NFA {
      * Constructs an NFA with the given parameters.
      *
      * @param cardinality Number of states in the NFA
-     * @param alphabet Set of input symbols
+     * @param alphabet    Set of input symbols
      * @param finalStates Set of final states
-     * @param startState Start state of the NFA
+     * @param startState  Start state of the NFA
      * @param transitions Set of transitions
      */
-    public NFA(int cardinality, Set<Character> alphabet, Set<Integer> finalStates, int startState, Set<Transition> transitions) {
+    public NFA(int cardinality, Set<Character> alphabet, Set<Integer> finalStates, int startState,
+            Set<Transition> transitions) {
         this.cardinality = cardinality;
         this.alphabet = alphabet;
         this.finalStates = finalStates;
@@ -33,7 +34,8 @@ class NFA {
 
 /**
  * Represents a transition in an automaton.
- * This class encapsulates the from state, input symbol, and to state of a transition.
+ * This class encapsulates the from state, input symbol, and to state of a
+ * transition.
  */
 class Transition {
     int fromState; // Source state of the transition
@@ -44,8 +46,8 @@ class Transition {
      * Constructs a transition with the given parameters.
      *
      * @param fromState Source state of the transition
-     * @param input Input symbol of the transition
-     * @param toState Destination state of the transition
+     * @param input     Input symbol of the transition
+     * @param toState   Destination state of the transition
      */
     public Transition(int fromState, char input, int toState) {
         this.fromState = fromState;
@@ -69,12 +71,13 @@ class DFA {
      * Constructs a DFA with the given parameters.
      *
      * @param cardinality Number of states in the DFA
-     * @param alphabet Set of input symbols
+     * @param alphabet    Set of input symbols
      * @param finalStates Set of final states
-     * @param startState Start state of the DFA
+     * @param startState  Start state of the DFA
      * @param transitions Set of transitions
      */
-    public DFA(int cardinality, Set<Character> alphabet, Set<Integer> finalStates, int startState, Set<Transition> transitions) {
+    public DFA(int cardinality, Set<Character> alphabet, Set<Integer> finalStates, int startState,
+            Set<Transition> transitions) {
         this.cardinality = cardinality;
         this.alphabet = alphabet;
         this.finalStates = finalStates;
@@ -84,7 +87,8 @@ class DFA {
 
     /**
      * Outputs the DFA structure.
-     * Prints the number of states, alphabet, final states, start state, and transitions.
+     * Prints the number of states, alphabet, final states, start state, and
+     * transitions.
      */
     public void output() {
         System.out.println(cardinality);
@@ -105,7 +109,8 @@ class DFA {
 
 /**
  * Converts an NFA to a DFA.
- * This class provides a method to convert an NFA to an equivalent DFA using the subset construction algorithm.
+ * This class provides a method to convert an NFA to an equivalent DFA using the
+ * subset construction algorithm.
  *
  * @author Gao Junran
  */
@@ -143,7 +148,8 @@ public class NfaToDfaConverter {
 
             // Process each input symbol
             for (char symbol : dfaAlphabet) {
-                // Compute the set of next NFA states for the current input symbol and current NFA state
+                // Compute the set of next NFA states for the current input symbol and current
+                // NFA state
                 Set<Integer> nextStateSet = new HashSet<>();
                 for (int state : currentStateSet) {
                     for (Transition t : nfa.transitions) {
@@ -190,16 +196,20 @@ public class NfaToDfaConverter {
             alphabet.add(c); // Set of input symbols
         }
         Set<Integer> finalStates = new HashSet<>();
-        for (String s : scanner.nextLine().split(" ")) {
-            finalStates.add(Integer.parseInt(s)); // Set of final states
+        String[] finalStatesInput = scanner.nextLine().split(" ");
+        int finalStateCount = Integer.parseInt(finalStatesInput[0]); // First number is the count
+        for (int i = 1; i <= finalStateCount; i++) { // Read next `finalStateCount` numbers
+            finalStates.add(Integer.parseInt(finalStatesInput[i]));
         }
         int startState = Integer.parseInt(scanner.nextLine()); // Start state
         Set<Transition> transitions = new HashSet<>();
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (line.isEmpty()) break; // End of transitions
+            if (line.isEmpty())
+                break; // End of transitions
             String[] parts = line.split(" ");
-            transitions.add(new Transition(Integer.parseInt(parts[0]), parts[1].charAt(0), Integer.parseInt(parts[2]))); // Read transitions
+            transitions.add(new Transition(Integer.parseInt(parts[0]), parts[1].charAt(0), Integer.parseInt(parts[2]))); // Read
+                                                                                                                         // transitions
         }
         scanner.close();
 
