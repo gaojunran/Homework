@@ -1,0 +1,4 @@
+test:
+  gcc ./csrc/p2_main.c ./csrc/p1_lib.c -o proj2
+  ./proj2 100 dat
+  bat ./pos.dat

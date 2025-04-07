@@ -3,22 +3,30 @@
 #include <time.h>
 #include <string.h>
 #include <stdbool.h>
+#include "p1_lib.h"
 
 #define MAX_NUMBERS 100
 
+typedef struct NodeValue {
+    float value;
+    F32Repr repr;
+} NodeValue;
+
 // 定义节点结构
 typedef struct Node {
-    float value; // 节点存储的值
+    NodeValue value; // 节点存储的值
     struct Node* next; // 指向下一个节点的指针
 } Node;
 
+
+
 // 生成随机浮点数
 float generate_random() {
-    return (float)(rand() % 2001 - 1000) / 10.0; // 生成范围在 -100.0 到 100.0 的随机浮点数
+    return ((float)rand() / (float)RAND_MAX) * 200.0f - 100.0f;
 }
 
 // 插入节点到链表头部
-void insert_node(Node** h, Node** t, float value) {
+void insert_node(Node** h, Node** t, NodeValue value) {
     // 创建一个新节点
     Node* temp = (Node*)malloc(sizeof(Node));
     temp->value = value;
@@ -54,7 +62,7 @@ void fprint_list(Node* h, const char* filename) {
         fprintf(output, "Values in the list are:\n");
         Node* current = h;
         while (current != NULL) {
-            fprintf(output, "[%.2f], ", current->value);
+            fprintf(output, "[%f], ", current->value.value);
             current = current->next;
         }
         fprintf(output, "\n");
@@ -102,15 +110,17 @@ int main(int argc, char* argv[]) {
     unsigned int count = 0;
     while (count < num_positive) {
         float random_value = generate_random();
+        F32Repr repr = float_to_IEEE754(random_value);
+        NodeValue node_value = {random_value, repr};
         if (random_value >= 1.0) {
-            insert_node(&pos, &pos_tail, random_value);
+            insert_node(&pos, &pos_tail, node_value);
             count++;
         } else if (random_value > 0.0 && random_value < 1.0) {
-            insert_node(&pos_frac, &pos_frac_tail, random_value);
+            insert_node(&pos_frac, &pos_frac_tail, node_value);
         } else if (random_value > -1.0 && random_value < 0.0) {
-            insert_node(&neg, &neg_tail, random_value);
+            insert_node(&neg, &neg_tail, node_value);
         } else if (random_value <= -1.0) {
-            insert_node(&neg_frac, &neg_frac_tail, random_value);
+            insert_node(&neg_frac, &neg_frac_tail, node_value);
         } else {
             fprintf(stderr, "Unexpected value generated: %.2f\n", random_value);
             return EXIT_FAILURE;
