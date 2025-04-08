@@ -5,22 +5,20 @@
  *              The program has been tested against https://baseconvert.com/ieee-754-floating-point for accuracy.
  */
 
- #include "p1_lib.h"  // 加了这一行
+ #include "p1_lib.h"  // Include the library for IEEE 754 representation structures
 
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
  #include <math.h>
  
- /*
-  * Function: pad_zero
-  * -------------------
+ /**
   * Pads a binary string with leading or trailing zeros to ensure a fixed size.
   *
-  *  source: The input binary string.
-  *  target: The output string with padding applied.
-  *  size:   The fixed size to pad to.
-  *  isLeading: If 1, pads with leading zeros; if 0, pads with trailing zeros.
+  * @param source The input binary string.
+  * @param target The output string with padding applied.
+  * @param size The fixed size to pad to.
+  * @param isLeading If 1, pads with leading zeros; if 0, pads with trailing zeros.
   */
  void pad_zero(char *source, char *target, int size, int isLeading) {
      int len = strlen(source);
@@ -48,13 +46,11 @@
      }
  }
  
- /*
-  * Function: int_to_binary
-  * ------------------------
+ /**
   * Converts an integer to its binary representation.
   *
-  *  num: The integer to convert.
-  *  binary: The output binary string.
+  * @param num The integer to convert.
+  * @param binary The output binary string.
   */
  void int_to_binary(long long int num, char *binary) {
      int index = 0;
@@ -72,13 +68,11 @@
      binary[len] = '\0';
  }
  
- /*
-  * Function: dec_to_binary
-  * ------------------------
+ /**
   * Converts a fractional decimal to its binary representation.
   *
-  *  dec: The fractional part of a number.
-  *  binary: The output binary string.
+  * @param dec The fractional part of a number.
+  * @param binary The output binary string.
   */
  void dec_to_binary(long double dec, char *binary) {
      int index = 0;
@@ -99,14 +93,12 @@
      binary[index] = '\0';
  }
  
- /*
-  * Function: calculate_mantissa
-  * -----------------------------
+ /**
   * Computes the mantissa from integer and fractional binary parts.
   *
-  *  int_binary: Binary representation of the integer part.
-  *  dec_binary: Binary representation of the decimal part.
-  *  mantissa: The output mantissa string.
+  * @param int_binary Binary representation of the integer part.
+  * @param dec_binary Binary representation of the decimal part.
+  * @param mantissa The output mantissa string.
   */
  void calculate_mantissa(char *int_binary, char *dec_binary, char *mantissa) {
      char binary[MAX_SIZE] = {0};
@@ -126,13 +118,11 @@
      mantissa[MANTISSA_SIZE] = '\0';
  }
  
- /*
-  * Function: calculate_exponent
-  * -----------------------------
+ /**
   * Computes the exponent value for IEEE 754 representation.
   *
-  *  real: The input floating-point number.
-  *  exponent: The output exponent string.
+  * @param real The input floating-point number.
+  * @param exponent The output exponent string.
   */
  void calculate_exponent(long double real, char *exponent) {
      int exp_val = 0;
@@ -158,24 +148,29 @@
      int_to_binary(exp_val, temp);
      pad_zero(temp, exponent, EXPONENT_SIZE, 1); // Pad with leading zeros
  }
-
  
+ /**
+  * Converts a floating-point number to its IEEE 754 single-precision representation.
+  *
+  * @param real The input floating-point number.
+  * @return The IEEE 754 representation of the input number.
+  */
  F32Repr float_to_IEEE754(long double real) {
      F32Repr repr;
      repr.sign[0] = (real >= 0.0) ? '0' : '1'; // Determine sign bit
      repr.sign[1] = '\0';
      real = fabs(real);
-
-     long long int int_part = (long long int) real;
+ 
+     long long int int_part = (long long int)real;
      long double dec_part = real - int_part;
-
+ 
      char int_binary[MAX_SIZE] = {0}, dec_binary[MAX_SIZE] = {0};
      int_to_binary(int_part, int_binary);
      dec_to_binary(dec_part, dec_binary);
-
+ 
      calculate_mantissa(int_binary, dec_binary, repr.mantissa);
      calculate_exponent(real, repr.exponent);
-
+ 
      if (strcmp(repr.exponent, "11111111") == 0) { // Check for overflow
          memset(repr.mantissa, '0', MANTISSA_SIZE);
          repr.mantissa[MANTISSA_SIZE] = '\0';
@@ -183,34 +178,36 @@
      return repr;
  }
  
-//  int main() {
-//      printf("Input a real number: "); fflush(stdout);
-//      long double real;
-//      scanf("%Lf", &real);
+ /**
+  * Converts an IEEE 754 single-precision representation back to a floating-point number.
+  *
+  * @param repr The IEEE 754 representation.
+  * @return The floating-point number corresponding to the input representation.
+  */
+ float IEEE754_to_float(F32Repr repr) {
+     // 1. Parse the sign bit
+     int sign = (repr.sign[0] == '1') ? 1 : 0;
  
-//      F32Repr repr;
-//      repr.sign[0] = (real >= 0.0) ? '0' : '1'; // Determine sign bit
-//      repr.sign[1] = '\0';
-//      real = fabs(real);
+     // 2. Parse the exponent (convert binary string to integer)
+     int exponent = (int)strtol(repr.exponent, NULL, 2);
  
-//      long long int int_part = (long long int) real;
-//      long double dec_part = real - int_part;
+     // 3. Parse the mantissa
+     double mantissa = 1.0; // Normalized, starts with 1.
  
-//      char int_binary[MAX_SIZE] = {0}, dec_binary[MAX_SIZE] = {0};
-//      int_to_binary(int_part, int_binary);
-//      dec_to_binary(dec_part, dec_binary);
+     for (int i = 1; i < MANTISSA_SIZE; i++) {
+         if (repr.mantissa[i] == '1') {
+             mantissa += pow(2, -i); // Contribution of each bit
+         }
+     }
  
-//      calculate_mantissa(int_binary, dec_binary, repr.mantissa);
-//      calculate_exponent(real, repr.exponent);
+     // 4. Calculate the actual floating-point value
+     int exp_adjusted = exponent - 127; // Adjust for bias
+     double value = mantissa * pow(2, exp_adjusted);
  
-//      if (strcmp(repr.exponent, "11111111") == 0) { // Check for overflow
-//          memset(repr.mantissa, '0', MANTISSA_SIZE);
-//          repr.mantissa[MANTISSA_SIZE] = '\0';
-//          printf("Overflow!!!\n");
-//      }
+     // 5. Apply the sign
+     if (sign) {
+         value = -value;
+     }
  
-//      printf("IEEE 754 Representation:\nSign: %s\nMantissa (24-bit): %s\nExponent: %s\n", repr.sign, repr.mantissa, repr.exponent);
- 
-//      return 0;
-//  }
- 
+     return (float)value;
+ }

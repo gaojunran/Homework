@@ -40,6 +40,14 @@ void calculate_mantissa(char *int_binary, char *dec_binary, char *mantissa);
  */
 void calculate_exponent(long double real, char *exponent);
 
+/**
+ * Converts a floating-point number to its IEEE 754 representation.
+ */
 F32Repr float_to_IEEE754(long double real);
+
+/**
+ * Converts an IEEE 754 representation to a floating-point number.
+ */
+float IEEE754_to_float(F32Repr repr);
 
 #endif
