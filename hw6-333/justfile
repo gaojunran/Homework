@@ -1,0 +1,19 @@
+test1:
+  gcc task2.c -o task2
+  ./task2 48 
+
+test2: 
+  gcc task2.c -o task2
+  ./task2 100
+
+test3:
+  gcc task4.c -o task4
+  ./task4 encrypt input.txt output.txt
+
+test4:
+  gcc task4.c -o task4
+  ./task4 decrypt output.txt decrypted.txt
+
+test5:
+  gcc task5.c -o task5
+  ./task5
