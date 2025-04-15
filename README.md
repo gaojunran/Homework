@@ -2,12 +2,6 @@
 
 这是我作业的代码仓库。
 
-对于Java作业，我通常会用Kotlin写，然后使用LLM将其翻译成Java代码。
+## 如何运行 🚀
 
-对于C语言作业，我通常会用Rust写，然后使用LLM将其翻译成C语言代码。
-
-所以你会在同一个作业里看到两门语言。
-
-## 如何运行 🔨
-
-参阅justfile。
+通常每个目录下都会有`justfile`文件，安装[just](https://github.com/casey/just)（命令运行器）来运行。
