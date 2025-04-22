@@ -1,0 +1,9 @@
+test1:
+  gcc task2.c -o task2
+  ./task2
+  bat $(ls | grep '^numbers' | head -1)
+
+test2:
+  gcc task3.c -o task3
+  ./task3
+
