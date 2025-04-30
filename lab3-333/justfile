@@ -1,0 +1,51 @@
+build-rs:
+  cargo build --release
+  cp ./target/release/lab3-333 ./copy
+  cp ./copy ./move
+
+build-c:
+  gcc main.c -o copy
+  cp ./copy ./move
+
+test:
+  mkdir -p demo && rm -rf ./demo/*
+
+  : "Test 1: no argument (should fail)"
+  -./copy
+  : "---------------------------"
+
+  : "Test 2: one argument (should fail)"
+  -./copy ./justfile
+  : "---------------------------"
+
+  : "Test 3: two arguments (should succeed)"
+  -./copy ./justfile ./demo
+  : "---------------------------"
+
+  : "Test 4: illegal destination (should fail)"
+  -./copy ./justfile ./demo/justfile
+  : "---------------------------"
+
+  : "Test 5: illegal source (should fail)"
+  -./copy ./not_exist ./demo
+
+  : "Test 6: file copied to itself (should fail)"
+  touch ./demo/justfile
+  -./copy ./demo/justfile ./demo
+  : "---------------------------"
+
+  : "Test 7: query for overwrite (should succeed)"
+  touch ./demo/justfile
+  -./copy ./justfile ./demo
+  : "---------------------------"
+
+  : "Test 8: test move two files (should succeed)"
+  touch demo1.txt && touch demo2.txt
+  -./move ./demo1.txt ./demo2.txt ./demo
+  : "---------------------------"
+
+  : "Test 9: test failed move (should fail)"
+  -./move /etc/passwd ./demo
+  : "---------------------------"
+
+  : "All tests completed."
