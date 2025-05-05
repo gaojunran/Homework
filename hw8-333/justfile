@@ -1,0 +1,3 @@
+test file:
+    gcc {{file}} -o output
+    ./output
