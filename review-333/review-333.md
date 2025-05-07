@@ -1,3 +1,11 @@
+---
+id: "review-333"
+class: "my-class"
+---
+
+@import "./markdown.less"
+
+
 # Number Systems
 
 ## 任意数转十进制
@@ -164,7 +172,7 @@ void delete_node(struct node **ph, int x) {
 
 1. `FILE * fopen( const char *filename, const char *mode );`
 
-![alt text](<CleanShot 2025-04-14 at 18.20.27@2x.png>)
+    ![alt text](<CleanShot 2025-04-14 at 18.20.27@2x.png>)
 
 2. `int fclose(FILE *stream);` 成功返回0，失败返回EOF。
 
@@ -186,7 +194,7 @@ void delete_node(struct node **ph, int x) {
 
 11. `int fflush(FILE *stream)`：刷新文件流，将缓冲区中的数据写入文件，如果成功返回0，否则返回EOF。
 
-![alt text](<CleanShot 2025-04-14 at 18.29.31@2x.png>)
+    ![alt text](<CleanShot 2025-04-14 at 18.29.31@2x.png>)
 
 # More about Strings and Pointer Arithmetic
 
@@ -208,11 +216,11 @@ void delete_node(struct node **ph, int x) {
 
 # More Memory Management
 
+
 ![alt text](<CleanShot 2025-04-14 at 19.03.17@2x.png>)
 
-1. `void * memmove(void *dst, const void *src, size_t len);`: 将src指向的内存块中的len个**字节**复制到dst指向的内存块中，如果dst和src重叠，则保证复制正确。返回dst。
 
-具体地，如果 源地址 < 目标地址，而且 区域有重叠，memmove 会从后往前拷贝，避免数据被覆盖。如果 源地址 > 目标地址 或者 没有重叠，它就可以从前往后正常拷贝。
+1. `void * memmove(void *dst, const void *src, size_t len);`: 将src指向的内存块中的len个**字节**复制到dst指向的内存块中，如果dst和src重叠，则保证复制正确。返回dst。具体地，如果 源地址 < 目标地址，而且 区域有重叠，memmove 会从后往前拷贝，避免数据被覆盖。如果 源地址 > 目标地址 或者 没有重叠，它就可以从前往后正常拷贝。
 
 2. `void* calloc(size_t num, size_t size);`: 分配num个大小为size的内存块，并将所有字节初始化为0。返回指向分配的内存块的指针，如果分配失败，返回NULL。
 
@@ -334,21 +342,21 @@ void delete_node(struct node **ph, int x) {
     ```
 7. 链接多个文件
 
-```bash
-gcc main.c max.c avg.c
-```
+    ```bash
+    gcc main.c max.c avg.c
+    ```
 
-或者：
+    或者：
 
-```bash
-# 只编译不链接
-gcc -c main.c && gcc -c max.c && gcc -c avg.c
-# 链接
-gcc main.o max.o avg.o
-```
+    ```bash
+    # 只编译不链接
+    gcc -c main.c && gcc -c max.c && gcc -c avg.c
+    # 链接
+    gcc main.o max.o avg.o
+    ```
 8. 生成可执行文件的过程
 
-![alt text](image.png)
+    ![alt text](image.png)
 
 # Programming at the Kernel Level
 
@@ -380,8 +388,6 @@ struct stat *buf;
 stat(fname, buf);  // 错误，buf 没有分配内存
 buf = malloc(sizeof(struct stat));  // 分配内存后调用 stat
 ```
-
-POSIX API：
 
 ### 文件操作相关
 - **`int open(const char *pathname, int oflag);`**
