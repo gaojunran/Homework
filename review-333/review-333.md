@@ -166,7 +166,7 @@ void delete_node(struct node **ph, int x) {
 
 ![alt text](<CleanShot 2025-04-14 at 18.20.27@2x.png>)
 
-2. `int fclose( FILE *stream );` 成功返回0，失败返回EOF。
+2. `int fclose(FILE *stream);` 成功返回0，失败返回EOF。
 
 3. `int getchar(void)`：从标准输入读取一个字符，返回该字符的ASCII码，如果到达文件末尾或发生错误，返回EOF（-1）。
 
@@ -217,3 +217,137 @@ void delete_node(struct node **ph, int x) {
 2. `void* calloc(size_t num, size_t size);`: 分配num个大小为size的内存块，并将所有字节初始化为0。返回指向分配的内存块的指针，如果分配失败，返回NULL。
 
 3. `void* realloc(void *ptr, size_t size);`: 重新分配ptr指向的内存块的大小为size，如果ptr为NULL，则相当于malloc(size)。如果ptr不为NULL，则原来的内存块会被释放，并返回指向新分配的内存块的指针。如果size为0，则原来的内存块会被释放，并返回NULL。
+
+# Bit Fields. Bitwise Operators
+
+
+1. Bit Field Size 通常应该是`unsigned`类型的，而且遵循结构体对齐规则：
+
+    - 一旦一个`unsigned int`字段无法完全容纳在当前 4 字节中，编译器会自动换到新的单元。
+    - 实际结构体大小由编译器决定，会受 对齐和打包策略 影响。
+
+2. 不能对 Bit Field 取地址。
+
+3. 按位运算：
+
+    - 将最高位（第 8 位）的位设为 0 ：`x &= 0x7F;`
+    - 将最高位（第 8 位）的位设为 1 ：`x |= 0x80;`
+    - 找出两个二进制数中不同的位：`x ^ y;`（结果中`1`表示不同的位）
+    - 反转二进制数中的所有位：`~x;`
+    - 把前 4 位设为`1101`，后四位不变：`x = (x & 0x0F) | 0xD0;`
+    - 反转第2、5、8位，其它位不变：`x ^= 0x92`。（与`1`做异或操作等同于反转）
+
+4. 对于右移操作（`>>`）：
+    - 通常相当于除以 2 的幂。例如，`x >> 1` 相当于 `x / 2^1`。
+    - 如果被移位的值的符号位是 0（即该值是非负数），那么右移后空出来的高位用 0 填充。
+    - 如果符号位是 1（即该值是负数），那么右移后空出来的高位用什么填充是与实现相关的。在大多数情况下，空位会用 1 填充。
+
+5. 对于左移操作（`<<`）：
+
+    - 通常相当于乘以 2 的幂。例如，`x << 1` 相当于 `x * 2^1`。
+    - 但可能会导致高位溢出。
+
+# The C Preprocessor
+
+1. 带参数的`#define`宏：
+
+    ```c
+    #define SQR(x) ((x) * (x))
+    ```
+    确保宏参数被括号包围，以保证正确的运算顺序。
+2. `#define`中的`#`
+
+    ```c
+    #define PRINT(x) printf(#x "\n")
+
+    PRINT(Hello); // #x is “Hello”
+    ```
+
+3. `#define`中的`##`
+
+    ```c
+    #define CONCAT(a, b) a ## b
+
+    int main(void) {
+        int xy = 10;
+        printf("%d", CONCAT(x, y)); // 10
+        return 0;
+    }
+    ```
+4. 其他宏
+
+    ```c
+    #if DEBUG == 1
+    printf("Token = %s\n", tok);
+    #elif DEBUG == 2 
+    printf("No. of words = \n", nw);
+    #else
+    printf("No debug info\n");
+    #endif
+    ```
+
+    ```c
+    #define DEBUG 1
+    #undef DEBUG  // 取消 DEBUG 的定义
+    #ifdef DEBUG
+    printf("No. of words = \n", nw); 
+    #endif
+    ```
+
+    ```c
+    #ifndef STRUCT_H  // 确保头文件只被引入一次
+    #define STRUCT_H
+    #include "struct_def.h"
+    #endif
+    ```
+
+    ```c
+    #ifndef INTEL
+    #error Wrong architecture  // 在预处理阶段报错
+    #endif
+    ```
+
+5. `#pragma`指令
+
+    ```c
+    #pragma soft-float
+    /* 告知编译器，目标系统没有硬件浮点单元，
+    应当使用软件库实现浮点运算  */
+    #pragma MC68000
+    /* 生成适用于Motorola 68000 CPU的机器代码. */
+    #pragma pack(1)  
+    /* 要求编译器在内存中紧密排列结构体成员，
+    不进行任何填充。 */
+    ```
+
+6. 预定义宏
+
+    ```c
+     #include <stdio.h>
+    int main() {
+    printf("File :%s\n", __FILE__ ); // main.c
+    printf("Date :%s\n", __DATE__ ); // Apr 14 2025
+    printf("Time :%s\n", __TIME__ ); // 18:20:27
+    printf("Line :%d\n", __LINE__ ); // 7
+    }
+    printf("ANSI :%d\n", __STDC__ ); // 1
+    ```
+7. 链接多个文件
+
+```bash
+gcc main.c max.c avg.c
+```
+
+或者：
+
+```bash
+# 只编译不链接
+gcc -c main.c && gcc -c max.c && gcc -c avg.c
+# 链接
+gcc main.o max.o avg.o
+```
+8. 生成可执行文件的过程
+
+![alt text](image.png)
+
+# Programming at the Kernel Level
