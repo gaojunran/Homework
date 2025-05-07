@@ -351,3 +351,190 @@ gcc main.o max.o avg.o
 ![alt text](image.png)
 
 # Programming at the Kernel Level
+
+1. `man`：1 - 用户命令；2 - 系统调用；3 - C 标准库函数
+2. `void perror(const char *buffer)`：打印错误信息，buffer 是错误信息的前缀。
+    ```c
+    if ((fd = open("/home/username/nofile",O_RDONLY)) == -1) {
+        perror("Error");
+        // Error: open: No such file or directory
+        exit(1);
+    }
+    ```
+
+# Files in POSIX
+
+1. 文件权限
+
+![alt text](image-1.png)
+
+2. 传入结构体指针的函数的要求
+
+```c
+struct stat buf;  // 在栈上分配内存 
+stat(fname, &buf);
+```
+
+```c
+struct stat *buf;
+stat(fname, buf);  // 错误，buf 没有分配内存
+buf = malloc(sizeof(struct stat));  // 分配内存后调用 stat
+```
+
+POSIX API：
+
+### 文件操作相关
+- **`int open(const char *pathname, int oflag);`**
+  - **解释**：打开或创建一个文件。`pathname` 是文件路径，`oflag` 是打开文件的方式（read only `O_RDONLY`；write only `O_WRONLY`；read/write `O_RDWR`）。返回文件描述符，若失败返回 -1。
+- **`int open(const char *pathname, int oflag, mode_t mode);`**
+  - **解释**：与上一个函数类似，但当创建文件时，`mode` 参数用于指定文件的权限。返回文件描述符，若失败返回 -1。
+- **`int close(int fd);`**
+  - **解释**：关闭一个已打开的文件描述符 `fd`。成功返回 0，失败返回 -1。
+- **`int dup(int fd);`**
+  - **解释**：复制文件描述符 `fd`，返回一个新的文件描述符，该新描述符与原描述符共享同一个文件。
+
+### 文件读写相关
+- **`ssize_t read(int fd, void *buf, size_t n);`**
+  - **解释**：从文件描述符 `fd` 指向的文件中读取最多 `n` 个字节到缓冲区 `buf`。返回实际读取的字节数，若到达文件末尾返回 0，失败返回 -1。
+- **`ssize_t write(int fd, void *buf, size_t n);`**
+  - **解释**：将缓冲区 `buf` 中的 `n` 个字节写入文件描述符 `fd` 指向的文件。返回实际写入的字节数，失败返回 -1。
+
+### 文件权限与属性相关
+- **`mode_t umask(mode_t mask);`**
+  - **解释**：设置文件创建掩码。`mask` 是掩码值，函数返回之前的掩码值。掩码用于限制文件的默认权限。
+- **`mode_t chmod(const char *path, mode_t mode);`**
+  - **解释**：改变文件 `path` 的权限为 `mode`。成功返回 0，失败返回 -1。
+- **`int chown(const char *path, uid_t owner, gid_t group);`**
+  - **解释**：改变文件 `path` 的所有者为 `owner`，所属组为 `group`。成功返回 0，失败返回 -1。
+
+### 文件定位相关
+- **`off_t lseek(int fd, off_t offset, int flag);`**
+  - **解释**：移动文件描述符 `fd` 的读写指针。`offset` 是偏移量，`flag` 指定偏移的基准（如从文件开头、当前位置等）。返回新的偏移量，失败返回 -1。
+
+### 文件状态相关
+- **`int stat(const char *path, struct stat *statbuf);`**
+  - **解释**：获取文件 `path` 的状态信息，存入 `statbuf` 指向的结构体中。成功返回 0，失败返回 -1。
+
+### 文件链接相关
+- **`int link(const char *oldPath, const char *newPath);`**
+  - **解释**：创建文件 `oldPath` 的硬链接 `newPath`。成功返回 0，失败返回 -1。
+- **`int unlink(const char *pathname);`**
+  - **解释**：删除文件 `pathname` 的链接。如果文件没有其他链接，则文件被删除。成功返回 0，失败返回 -1。
+- **`int symlink(const char *target, const char *linkpath);`**
+  - **解释**：创建符号链接 `linkpath`，指向目标 `target`。成功返回 0，失败返回 -1。
+
+### 目录操作相关
+- **`int mkdir(const char *path, mode_t mode);`**
+  - **解释**：创建目录 `path`，权限为 `mode`。成功返回 0，失败返回 -1。
+- **`int rmdir(const char *path);`**
+  - **解释**：删除空目录 `path`。成功返回 0，失败返回 -1。
+- **`DIR *opendir(const char *path);`**
+  - **解释**：打开目录 `path`，返回目录流指针。失败返回 `NULL`。
+- **`int closedir(DIR *dir);`**
+  - **解释**：关闭目录流 `dir`。成功返回 0，失败返回 -1。
+- **`struct dirent *readdir(DIR *dir);`**
+  - **解释**：从目录流 `dir` 中读取下一个目录项，返回目录项指针。若无更多目录项，返回 `NULL`。
+- **`void rewinddir(DIR *dir);`**
+  - **解释**：将目录流 `dir` 的位置重置到目录的开头。
+- **`int chdir(const char *path);`**
+  - **解释**：将当前工作目录更改为 `path`。成功返回 0，失败返回 -1。
+- **`char *getcwd(char *buf, size_t size);`**
+  - **解释**：获取当前工作目录的路径，存入 `buf`，`size` 是缓冲区大小。成功返回 `buf`，失败返回 `NULL`。
+
+# Processes
+
+以下是这些函数的原型和简要解释：
+
+### 用户和进程标识相关
+- **`uid_t getuid(void);`**
+  - **解释**：获取调用进程的实际用户ID（UID）。返回值为调用进程的实际用户ID。
+- **`uid_t geteuid(void);`**
+  - **解释**：获取调用进程的有效用户ID（EUID）。返回值为调用进程的有效用户ID。
+- **`pid_t getpid(void);`**
+  - **解释**：获取调用进程的进程ID（PID）。返回值为调用进程的进程ID。
+- **`pid_t getppid(void);`**
+  - **解释**：获取调用进程的父进程ID（PPID）。返回值为调用进程的父进程ID。
+
+### 进程控制相关
+- **`pid_t fork(void);`**
+  - **解释**：创建一个新进程，新进程是调用进程的副本。`fork` 的返回值有三种情况：
+    - 在子进程中返回 0。
+    - 在父进程中返回子进程的进程ID。
+    - 如果出错，返回 -1。
+- **`pid_t wait(int *status);`**
+  - **解释**：等待任意子进程终止，并获取其状态信息。`status` 是一个指向整型变量的指针，用于存储子进程的退出状态。可能的 `status` 值包括：
+    - 子进程正常退出时的状态码。
+    - 子进程被信号终止时的信号编号。
+    - 子进程是否被暂停或继续运行。
+    - 如果 `status` 为 `NULL`，则不获取状态信息。
+    - 成功返回子进程的PID，失败返回 -1。
+- **`pid_t waitpid(pid_t pid, int *wstatus, int options);`**
+  - **解释**：等待指定的子进程终止，并获取其状态信息。`pid` 指定要等待的子进程的PID，`wstatus` 是一个指向整型变量的指针，用于存储子进程的退出状态，`options` 是等待选项，可能的值包括：
+    - `WNOHANG`：非阻塞模式，如果子进程尚未终止，立即返回。
+    - `WUNTRACED`：报告被暂停的子进程。
+    - `WCONTINUED`：报告被继续运行的子进程。
+    - 成功返回子进程的PID，失败返回 -1。
+
+### 进程执行相关
+- **`int execl(const char *path, const char *arg, ...);`**
+  - **解释**：用指定的程序替换调用进程的映像。`path` 是程序路径，`arg` 是程序的参数列表，以 `NULL` 结尾。成功则不会返回，失败返回 -1。
+- **`int execv(const char *path, char *const argv[]);`**
+  - **解释**：与 `execl` 类似，但参数通过数组 `argv` 传递。`path` 是程序路径，`argv` 是参数数组，以 `NULL` 结尾。成功则不会返回，失败返回 -1。
+- **`int execlp(const char *file, const char *arg, ...);`**
+  - **解释**：与 `execl` 类似，但会在环境变量 `PATH` 中搜索程序。`file` 是程序名，`arg` 是参数列表，以 `NULL` 结尾。成功则不会返回，失败返回 -1。
+- **`int execvp(const char *file, char *const argv[]);`**
+  - **解释**：与 `execv` 类似，但会在环境变量 `PATH` 中搜索程序。`file` 是程序名，`argv` 是参数数组，以 `NULL` 结尾。成功则不会返回，失败返回 -1。
+- **`int execle(const char *path, const char *arg, ..., char *const envp[]);`**
+  - **解释**：与 `execl` 类似，但允许指定新的环境变量。`path` 是程序路径，`arg` 是参数列表，`envp` 是环境变量数组，以 `NULL` 结尾。成功则不会返回，失败返回 -1。
+- **`int execvpe(const char *file, char *const argv[], char *const envp[]);`**
+  - **解释**：与 `execvp` 类似，但允许指定新的环境变量。`file` 是程序名，`argv` 是参数数组，`envp` 是环境变量数组，以 `NULL` 结尾。成功则不会返回，失败返回 -1。
+
+# Pipes and Signals
+
+常见的信号：
+
+![alt text](image-2.png)
+
+以下是这些函数的原型和简要解释：
+
+### 管道和文件描述符操作
+- **`int pipe(int filedes[2]);`**
+  - **解释**：创建一个管道。`filedes` 是一个包含两个文件描述符的数组，其中 `filedes[0]` 用于读取，`filedes[1]` 用于写入。成功返回 0，失败返回 -1。
+- **`int dup2(int fd, int fdnew);`**
+  - **解释**：将文件描述符 `fd` 复制到 `fdnew`。如果 `fdnew` 已经打开，则先关闭它。成功返回 `fdnew`，失败返回 -1。
+- **`int mkfifo(const char *path, mode_t mode);`**
+  - **解释**：创建一个命名管道（FIFO）。`path` 是管道的路径，`mode` 是管道的权限。成功返回 0，失败返回 -1。
+
+### 文件控制操作
+- **`int fcntl(int fd, int cmd, ...);`**
+  - **解释**：对文件描述符 `fd` 进行控制操作。`cmd` 是命令类型，可能的值包括：
+    - `F_DUPFD`：返回一个新的文件描述符，它是 `fd` 的副本，并且大于等于 `arg`。
+    - `F_GETFD`：获取文件描述符标志。
+    - `F_SETFD`：设置文件描述符标志。
+    - `F_GETFL`：获取文件状态标志。
+    - `F_SETFL`：设置文件状态标志。
+    - 其他命令可能需要额外的参数，具体取决于 `cmd` 的值。成功返回值取决于命令，失败返回 -1。
+
+### 信号处理
+- **`int kill(pid_t pid, int signal);`**
+  - **解释**：向进程 `pid` 发送信号 `signal`。`pid` 可以是：
+    - 大于 0：向进程ID为 `pid` 的进程发送信号。
+    - 等于 0：向调用进程所在的进程组发送信号。
+    - 等于 -1：向调用进程有权发送信号的所有进程发送信号。
+    - 小于 -1：向进程组ID为 `-pid` 的进程组发送信号。
+    - 成功返回 0，失败返回 -1。
+- **`int raise(int signal);`**
+  - **解释**：向调用进程自身发送信号 `signal`。成功返回 0，失败返回 -1。
+- **`int sigaction(int signal, const struct sigaction *action, struct sigaction *oldaction);`**
+  - **解释**：用于设置和获取信号的处理方式。`signal` 是要处理的信号，`action` 是指向新信号处理方式的指针，`oldaction` 是指向旧信号处理方式的指针（如果需要获取旧的处理方式）。
+    - **`struct sigaction`** 结构体的成员包括：
+      - `void (*sa_handler)(int)`：信号处理函数指针，用于处理信号。
+      - `void (*sa_sigaction)(int, siginfo_t *, void *)`：用于支持实时信号的处理函数指针，可以接收额外的信号信息。
+      - `sigset_t sa_mask`：在信号处理函数执行期间需要屏蔽的信号集合。
+      - `int sa_flags`：信号处理的标志，可能的值包括：
+        - `SA_RESTART`：使被信号中断的系统调用自动重新开始。
+        - `SA_NOCLDSTOP`：当子进程停止时，不向父进程发送 `SIGCHLD`。
+        - `SA_SIGINFO`：使用 `sa_sigaction` 而不是 `sa_handler`。
+        - 其他标志。
+      - `void (*sa_restorer)(void)`：已废弃，不应使用。
+    - 成功返回 0，失败返回 -1。
