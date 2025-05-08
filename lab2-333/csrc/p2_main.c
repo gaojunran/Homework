@@ -55,17 +55,22 @@ void insert_node(Node** h, Node** t, NodeValue* value) {
  *
  * @param h Pointer to the head of the linked list.
  */
-void print_list(Node* h) {
+void print_list(Node* h, const char* filename) {
+    FILE* output = fopen(filename, "w");
+    if (output == NULL) {
+        perror("Failed to create file");
+        exit(EXIT_FAILURE);
+    }
     if (h == NULL) {
-        printf("The list is empty.\n");
+        fprintf(output, "The list is empty.\n");
     } else {
-        printf("Values in the list are:\n");
+        fprintf(output, "Values in the list are: \n");
         Node* current = h;
         while (current != NULL) {
-            printf("%.6f\n", current->value->value);
+            fprintf(output, "%.6f\n", current->value->value);
             current = current->next;
         }
-        printf("\n");
+        fprintf(output, "\n");
     }
 }
 
@@ -122,10 +127,10 @@ int main() {
     }
 
     // Print the linked lists to standard output
-    print_list(pos);        // Positive numbers >= 1
-    print_list(pos_frac);   // Positive fractions < 1
-    print_list(neg);        // Negative numbers <= -1
-    print_list(neg_frac);   // Negative fractions > -1
+    print_list(pos, "pos.txt"); // Positive numbers >= 1
+    print_list(pos_frac, "pos_frac.txt"); // Positive fractions < 1
+    print_list(neg, "neg.txt"); // Negative numbers <= -1
+    print_list(neg_frac, "neg_frac.txt"); // Negative fractions > -1
 
     // Free the memory allocated for the linked lists
     free_list(pos);
@@ -133,5 +138,6 @@ int main() {
     free_list(neg);
     free_list(neg_frac);
 
+    printf("Lists successfully written to files. \n");
     return EXIT_SUCCESS;
 }
