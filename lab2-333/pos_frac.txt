@@ -1,3 +1,0 @@
-Values in the list are: 
-0.163177
-
