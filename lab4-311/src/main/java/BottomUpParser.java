@@ -2,7 +2,6 @@ import java.util.*;
 
 public class BottomUpParser {
 
-    // Grammar rules: ruleIndex from 0 to 2
     static class Rule {
         String lhs;
         String rhs;
@@ -13,12 +12,11 @@ public class BottomUpParser {
     }
 
     static final Rule[] rules = {
-        new Rule("S", "X"),      // Rule 1: <S> → <X>
-        new Rule("X", "(X)"),    // Rule 2: <X> → (<X>)
-        new Rule("X", "()")      // Rule 3: <X> → ()
+        new Rule("S", "X"),
+        new Rule("X", "(X)"),
+        new Rule("X", "()")
     };
 
-    // ACTION table: actionTable[state][symbol] => action string (e.g., "s2", "r1", "acc")
     static final Map<Integer, Map<String, String>> actionTable = new HashMap<>();
     static {
         actionTable.put(0, Map.of("(", "s2"));
@@ -29,7 +27,6 @@ public class BottomUpParser {
         actionTable.put(5, Map.of("(", "r3", ")", "r3", "$", "r3"));
     }
 
-    // GOTO table: gotoTable[state][nonterminal] => new state
     static final Map<Integer, Map<String, Integer>> gotoTable = new HashMap<>();
     static {
         gotoTable.put(0, Map.of("X", 1));
@@ -42,7 +39,9 @@ public class BottomUpParser {
     public static void main(String[] args) {
         String[] testInputs = { "(())$", "((()))$", "($" };
         for (String input : testInputs) {
-            System.out.println("\nParsing input: " + input);
+            System.out.println("\n==============================");
+            System.out.println("Parsing input: " + input);
+            System.out.println("==============================");
             parseInput(input);
         }
     }
@@ -50,37 +49,33 @@ public class BottomUpParser {
     static void parseInput(String input) {
         stateStack.clear();
         symbolStack.clear();
-        // initial state: s0
         stateStack.push(0);
-        // track the current char index in the input
         int index = 0;
         while (true) {
             int state = stateStack.peek();
             String symbol = String.valueOf(input.charAt(index));
-
             String action = getAction(state, symbol);
-
+            printStacks();
             if (action == null) {
                 System.out.println("Error: Unexpected symbol '" + symbol + "' in state s" + state);
                 return;
             }
-
             if (action.equals("acc")) {
                 System.out.println("Accepted!");
                 return;
             }
-
             if (action.startsWith("s")) {
                 int newState = Integer.parseInt(action.substring(1));
                 shift(newState, symbol);
                 index++;
             } else if (action.startsWith("r")) {
-                int ruleIndex = Integer.parseInt(action.substring(1)) - 1; // 1-based to 0-based
+                int ruleIndex = Integer.parseInt(action.substring(1)) - 1;
                 reduce(ruleIndex);
             } else {
                 System.out.println("Error: Invalid action '" + action + "'");
                 return;
             }
+            System.out.println();  // 空行
         }
     }
 
@@ -93,23 +88,18 @@ public class BottomUpParser {
     static void reduce(int ruleIndex) {
         Rule rule = rules[ruleIndex];
         int popCount = rule.rhs.length();
-        // pop together
         for (int i = 0; i < popCount; i++) {
             if (!symbolStack.isEmpty()) symbolStack.pop();
             if (!stateStack.isEmpty()) stateStack.pop();
         }
-        // push symbol
         symbolStack.push(rule.lhs);
         int currentState = stateStack.peek();
-
         Map<String, Integer> gotoRow = gotoTable.get(currentState);
         if (gotoRow == null || !gotoRow.containsKey(rule.lhs)) {
             System.out.println("Error: No GOTO entry for state s" + currentState + " and symbol '" + rule.lhs + "'");
             return;
         }
-
         int newState = gotoRow.get(rule.lhs);
-        // find new state in goto table and push it
         stateStack.push(newState);
         System.out.println("Reduce: apply rule " + (ruleIndex + 1) + " (" + rule.lhs + " → " + rule.rhs + "), goto state s" + newState);
     }
@@ -117,5 +107,10 @@ public class BottomUpParser {
     static String getAction(int state, String symbol) {
         Map<String, String> row = actionTable.get(state);
         return (row != null) ? row.getOrDefault(symbol, null) : null;
+    }
+
+    static void printStacks() {
+        System.out.println("State stack: " + stateStack);
+        System.out.println("Symbol stack: " + symbolStack);
     }
 }

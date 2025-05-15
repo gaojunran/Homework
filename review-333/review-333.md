@@ -6,7 +6,7 @@ class: "my-class"
 @import "./markdown.less"
 
 
-# Number Systems
+<!-- # Number Systems
 
 ## 任意数转十进制
 
@@ -224,7 +224,7 @@ void delete_node(struct node **ph, int x) {
 
 2. `void* calloc(size_t num, size_t size);`: 分配num个大小为size的内存块，并将所有字节初始化为0。返回指向分配的内存块的指针，如果分配失败，返回NULL。
 
-3. `void* realloc(void *ptr, size_t size);`: 重新分配ptr指向的内存块的大小为size，如果ptr为NULL，则相当于malloc(size)。如果ptr不为NULL，则原来的内存块会被释放，并返回指向新分配的内存块的指针。如果size为0，则原来的内存块会被释放，并返回NULL。
+3. `void* realloc(void *ptr, size_t size);`: 重新分配ptr指向的内存块的大小为size，如果ptr为NULL，则相当于malloc(size)。如果ptr不为NULL，则原来的内存块会被释放，并返回指向新分配的内存块的指针。如果size为0，则原来的内存块会被释放，并返回NULL。 -->
 
 # Bit Fields. Bitwise Operators
 
