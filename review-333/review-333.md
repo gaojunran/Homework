@@ -533,3 +533,56 @@ buf = malloc(sizeof(struct stat));  // 分配内存后调用 stat
 - **`uint32_t ntohl(uint32_t netlong);`**：将网络字节序的 32 位整数转换为主机字节序。`netlong` 是网络字节序的整数。返回主机字节序的整数。
 
 - **`uint16_t ntohs(uint16_t netshort);`**：将网络字节序的 16 位整数转换为主机字节序。`netshort` 是网络字节序的整数。返回主机字节序的整数。
+
+# Thread
+
+- **`int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);`**：创建新线程。`thread` 是新线程的标识符，`attr` 是线程属性（可为 NULL），`start_routine` 是线程执行的函数，`arg` 是传递给函数的参数。成功返回 0，失败返回错误码。
+
+- **`int pthread_join(pthread_t thread, void **retval);`**：等待指定线程终止。`thread` 是待等待的线程标识符，`retval` 接收线程的返回值（可为 NULL）。成功返回 0，失败返回错误码。
+
+- **`void pthread_exit(void *retval);`**：终止当前线程并返回结果。`retval` 是线程的返回值，传递给 `pthread_join`。不返回，线程直接退出。
+
+- **`int pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr);`**：初始化互斥锁。`mutex` 是互斥锁对象，`attr` 是互斥锁属性（可为 NULL）。成功返回 0，失败返回错误码。
+
+- **`int pthread_mutex_lock(pthread_mutex_t *mutex);`**：锁定互斥锁。`mutex` 是要锁定的互斥锁对象。若锁已被占用，线程阻塞直到锁可用。成功返回 0，失败返回错误码。
+
+- **`int pthread_mutex_trylock(pthread_mutex_t *mutex);`**：尝试锁定互斥锁。`mutex` 是要锁定的互斥锁对象。若锁可用，立即锁定；否则不阻塞，直接返回。成功返回 0，失败返回错误码（如 EBUSY）。
+
+- **`int pthread_mutex_unlock(pthread_mutex_t *mutex);`**：解锁互斥锁。`mutex` 是要解锁的互斥锁对象。成功返回 0，失败返回错误码。
+
+- **`int pthread_mutex_destroy(pthread_mutex_t *mutex);`**：销毁互斥锁。`mutex` 是要销毁的互斥锁对象，需确保锁未被使用。成功返回 0，失败返回错误码。
+
+- **`int pthread_barrier_wait(pthread_barrier_t *barrier);`**：在屏障上等待。`barrier` 是屏障对象，所有线程到达屏障后才能继续。到达屏障的最后一个线程返回 PTHREAD_BARRIER_SERIAL_THREAD，其他线程返回 0，失败返回错误码。
+
+
+# Shared Memory
+
+- **`int shmget(key_t key, size_t size, int shmflg);`**：创建或获取共享内存段。`key` 是共享内存的键值，`size` 是内存段大小（字节），`shmflg` 是标志位（如权限或创建标志）。成功返回共享内存标识符，失败返回 -1。
+
+- **`void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);`**：将文件或设备映射到内存。`addr` 是建议的映射地址（通常为 NULL），`length` 是映射长度，`prot` 是保护标志（如读写），`flags` 是映射选项，`fd` 是文件描述符，`offset` 是文件偏移量。成功返回映射地址，失败返回 MAP_FAILED。
+
+- **`int shm_open(const char *name, int oflag, mode_t mode);`**：打开或创建命名共享内存对象。`name` 是共享内存名称，`oflag` 是打开标志（如 O_CREAT），`mode` 是权限模式。成功返回文件描述符，失败返回 -1。
+
+- **`int ftruncate(int fd, off_t length);`**：调整文件或共享内存的大小。`fd` 是文件描述符，`length` 是目标大小。成功返回 0，失败返回 -1。
+
+- **`int munmap(void *addr, size_t length);`**：解除内存映射。`addr` 是映射的起始地址，`length` 是映射长度。成功返回 0，失败返回 -1。
+
+- **`int shm_unlink(const char *name);`**：删除命名共享内存对象。`name` 是共享内存名称。成功返回 0，失败返回 -1。
+
+- **`int sem_init(sem_t *sem, int pshared, unsigned int value);`**：初始化未命名信号量。`sem` 是信号量对象，`pshared` 指定是否进程间共享（0 为线程间），`value` 是初始值。成功返回 0，失败返回 -1。
+
+- **`sem_t *sem_open(const char *name, int oflag, mode_t mode, unsigned int value);`**：打开或创建命名信号量。`name` 是信号量名称，`oflag` 是打开标志（如 O_CREAT），`mode` 是权限模式，`value` 是初始值。成功返回信号量指针，失败返回 SEM_FAILED。
+
+- **`int sem_wait(sem_t *sem);`**：等待信号量，减少其值。`sem` 是信号量对象，若值为 0 则阻塞直到可用。成功返回 0，失败返回 -1。
+
+- **`int sem_trywait(sem_t *sem);`**：尝试等待信号量，减少其值。`sem` 是信号量对象，若值为 0 则不阻塞，直接返回。成功返回 0，失败返回 -1（如 EAGAIN）。
+
+- **`int sem_post(sem_t *sem);`**：释放信号量，增加其值。`sem` 是信号量对象，可能唤醒等待的线程或进程。成功返回 0，失败返回 -1。
+
+- **`int sem_getvalue(sem_t *sem, int *sval);`**：获取信号量的当前值。`sem` 是信号量对象，`sval` 存储返回值。成功返回 0，失败返回 -1。
+
+- **`int sem_close(sem_t *sem);`**：关闭命名信号量。`sem` 是通过 `sem_open` 打开的信号量对象。成功返回 0，失败返回 -1。
+
+- **`int sem_destroy(sem_t *sem);`**：销毁未命名信号量。`sem` 是通过 `sem_init` 初始化的信号量对象，需确保无进程或线程使用。成功返回 0，失败返回 -1。
+
+- **`int sem_unlink(const char *name);`**：删除命名信号量。`name` 是信号量名称。成功返回 0，失败返回 -1。
