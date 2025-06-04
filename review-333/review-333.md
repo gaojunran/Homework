@@ -436,6 +436,24 @@ buf = malloc(sizeof(struct stat));  // 分配内存后调用 stat
 
 # Processes
 
+1. 什么是孤儿进程和僵尸进程？
+
+    孤儿进程：父进程先结束，子进程变成孤儿，系统会把它转给 init(1) 进程管理。
+
+    僵尸进程：子进程已退出但父进程未调用 wait() 获取其退出状态，进程仍占据系统资源。
+
+    防止产生僵尸进程：调用 wait() 或 waitpid() 等待子进程，回收其退出状态。使用信号处理器处理 SIGCHLD 信号，在信号处理函数中调用 waitpid()。让子进程成为孤儿进程，由 init 进程接管，自动清理（现代 Linux 中）
+
+2. 每个进程由操作系统管理哪些资源？
+
+    每个进程通常包括：代码段（text segment）、数据段（data segment）、堆（heap）、栈（stack）、文件描述符、进程控制块（PCB）
+
+3. fork() 创建的子进程与父进程有哪些相同与不同？
+
+    相同点：拥有相同的代码段、数据段、堆和栈的副本。拥有相同的打开文件描述符。环境变量相同。
+
+    不同点：拥有不同的进程 ID（PID）。父子进程在 fork() 返回值不同。进程空间（内存）虽然初始相同，但相互独立，修改互不影响。调度和执行顺序由操作系统决定，可能是先父后子、先子后父或交替进行。
+
 - **`uid_t getuid(void);`**：获取调用进程的实际用户ID（UID）。返回值为调用进程的实际用户ID。
 - **`uid_t geteuid(void);`**：获取调用进程的有效用户ID（EUID）。返回值为调用进程的有效用户ID。
 - **`pid_t getpid(void);`**：获取调用进程的进程ID（PID）。返回值为调用进程的进程ID。
@@ -522,9 +540,11 @@ buf = malloc(sizeof(struct stat));  // 分配内存后调用 stat
 
 # Pipes and Signals
 
+
+
 ![alt text](image-2.png)
 
-- **`int pipe(int filedes[2]);`**：创建一个管道。`filedes` 是一个包含两个文件描述符的数组，其中 `filedes[0]` 用于读取，`filedes[1]` 用于写入。成功返回 0，失败返回 -1。
+- **`int pipe(int filedes[2]);`**：创建一个管道。`filedes` 是一个包含两个文件描述符的数组，其中 `filedes[0]` 用于读取，`filedes[1]` 用于写入。成功返回 0，失败返回 -1。读数据前、写数据后应该正确地关闭管道。
 
     ```c
     // 实现 `ls | wc -l`
@@ -616,8 +636,9 @@ buf = malloc(sizeof(struct stat));  // 分配内存后调用 stat
   - `void (*sa_restorer)(void)`：已废弃，不应使用。
 
   ```c
-  volatile sig_atomic_t got_usr1;
-  // 防止编译器优化（确保对 got_usr1 的修改立即可见）
+  // 注册信号处理函数
+
+  volatile sig_atomic_t got_usr1; // 防止编译器优化（确保对 got_usr1 的修改立即可见）
 
   void sigusr1_handler(int sig) {
     got_usr1 = 1;
@@ -646,17 +667,47 @@ buf = malloc(sizeof(struct stat));  // 分配内存后调用 stat
 # Networking
 
 1. TCP：面向连接、传输层、三次握手来建立、四次挥手来断开连接、使用滑动窗口
-2. UDP：无连接、传输层、不保证数据包的顺序和完整性、不建立会话的情况下发送消息。
-3. 查看本地 private IP：`hostname -I | awk '{print $1}'`
-4. 子网
+   UDP：无连接、传输层、不保证数据包的顺序和完整性、不建立会话的情况下发送消息。
+2. 查看本地 private IP：`hostname -I | awk '{print $1}'`
+3. 子网
    
    ![alt text](image-3.png)
 
-5. 网络地址和主机地址的组合
+4. 网络地址和主机地址的组合
     - [Net Address] + [All 0s] – 网络本身，标识网络地址
     - [All 0s] + [Host Address] – 网络内部的主机，标识单个设备
     - [Net Address] + [All 1s] – 网络中的所有主机，用于广播
+5. 计算机网络的五层模型是哪几层？每层的作用是什么？
 
+    应用层：提供网络服务给应用程序（如 HTTP、FTP、SMTP）。
+
+    传输层：负责端到端通信与数据可靠传输（如 TCP、UDP）。
+
+    网络层：负责选择路由并进行 IP 寻址（如 IP 协议）。
+
+    数据链路层：负责节点之间的数据帧传输（如 Ethernet）。
+
+    物理层：负责比特流的传输（电信号、光信号等）。
+
+6. NAT（Network Address Translation）是网络地址转换。它将私有地址转换为公网地址，实现多个设备共享一个公网 IP。
+
+7. DNS（Domain Name System）负责域名到 IP 地址的转换，让人们能通过域名访问网站而非记 IP 地址。
+
+8. MAC 地址是什么？与 IP 地址有什么不同？
+
+    MAC 地址是网卡的物理地址（硬件地址，48 位）。
+
+    IP 地址是逻辑地址，可以变动。
+
+    MAC 地址用于局域网通信，IP 用于跨网络通信。
+
+9.  服务器如何同时处理多个客户端连接？
+
+    使用 多进程（fork()）；
+
+    使用 多线程（pthread_create()）；
+
+    使用 I/O 多路复用：如 select()、poll()、epoll。
 
 - **`int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);`**：根据主机名 `node` 和服务名 `service` 获取地址信息。`hints` 是一个指向 `addrinfo` 结构体的指针，用于指定查询的条件，如地址族、套接字类型等。`res` 是一个指向 `addrinfo` 结构体链表的指针，用于存储查询结果。成功返回 0，失败返回错误码。
 
@@ -763,7 +814,7 @@ int main(int argc, char *argv[]) {
 
 - **`ssize_t recv(int sockfd, void *buffer, size_t len, int flags);`**：从套接字接收数据。`sockfd` 是套接字描述符，`buffer` 是接收缓冲区，`len` 是缓冲区大小，`flags` 是接收标志，如 `MSG_PEEK`（预览数据）。成功返回接收的字节数，失败返回 -1。
 
-- **`int bind(int socket, const struct sockaddr *ai_addr, socklen_t ai_addrlen);`**：将套接字绑定到指定地址。`socket` 是套接字描述符，`ai_addr` 是指向地址结构的指针，`ai_addrlen` 是地址结构的长度。成功返回 0，失败返回 -1。
+- **`int bind(int socket, const struct sockaddr *ai_addr, socklen_t ai_addrlen);`**：将套接字绑定到指定地址。（服务器必须调用 bind()，客户端一般不需要（由操作系统分配临时端口））`socket` 是套接字描述符，`ai_addr` 是指向地址结构的指针，`ai_addrlen` 是地址结构的长度。成功返回 0，失败返回 -1。
 
 - **`int listen(int socket, int backlog);`**：将套接字设置为监听状态。`socket` 是套接字描述符，`backlog` 是未完成连接队列的最大长度。成功返回 0，失败返回 -1。
 
@@ -869,6 +920,17 @@ if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1 , 0,
 
 # Thread
 
+1. 什么是线程？线程是程序执行的最小单元，多个线程共享进程的地址空间。
+
+2. 什么是死锁？如何避免？
+
+    死锁：多个线程相互等待对方释放锁，导致永久阻塞。
+
+    避免方法：始终以相同顺序加锁；加锁后设置超时；使用线程调度设计避免资源环等待。
+
+3. 在 Linux 中，同一进程内的多个线程之间**共享大部分资源**，包括代码段（即程序指令）、全局变量和静态变量、堆内存、文件描述符表、当前工作目录、信号处理方式等。这使得线程之间的数据交换和通信非常高效。然而，每个线程也有**自己的私有资源**，包括**独立的栈空间**（用于函数调用和局部变量）、**线程 ID（pthread\_t）**、**线程调度参数**、**errno 值** 以及通过线程局部存储（TLS）维护的私有变量等。
+
+
 - **`int pthread_create(pthread_t *restrict thread, const pthread_attr_t *restrict attr, void *(*start_routine)(void*), void *restrict arg);`**：创建新线程。`thread` 是新线程的标识符，`attr` 是线程属性（可为 NULL），`start_routine` 是线程执行的函数，`arg` 是传递给函数的参数。成功返回 0，失败返回错误码。
 
 - **`int pthread_join(pthread_t thread, void **retval);`**：等待指定线程终止。`thread` 是待等待的线程标识符，`retval` 接收线程的返回值（可为 NULL）。成功返回 0，失败返回错误码。
@@ -888,6 +950,8 @@ if ((numbytes = recvfrom(sockfd, buf, MAXBUFLEN-1 , 0,
 - **`int pthread_barrier_wait(pthread_barrier_t *barrier);`**：在屏障上等待。`barrier` 是屏障对象，所有线程到达屏障后才能继续。到达屏障的最后一个线程返回 PTHREAD_BARRIER_SERIAL_THREAD，其他线程返回 0，失败返回错误码。
 
 ```c
+// 多线程和互斥锁的使用
+
 #define NUM_THREADS 5 
  
 /* create thread argument struct for thr_func() */
@@ -943,9 +1007,9 @@ int main(int argc, char **argv) {
 }
 ```
 
-进程间不共享全局变量、堆内存、栈内存，但共享文件描述符、共享内存、信号量等；线程间均共享：
 
 ```c
+// 检验堆内存在进程间和线程间是否共享
 void *incrementHeap(void *param) {
     int *myHeap = (int *)param;
     (*myHeap)++;
@@ -982,6 +1046,80 @@ int main(void) {
 
 
 # Shared Memory
+
+1. 什么是共享内存（Shared Memory）？
+    共享内存是一种进程间通信（IPC）机制，多个进程可以将同一块物理内存映射到自己的虚拟地址空间，从而实现高速的数据共享和通信，是最为高效的 IPC 方式之一。
+2. System V 共享内存 API（shmget 等）使用共享内存的基本流程是什么？
+
+    shmget()：创建或获取共享内存；
+
+    shmat()：将共享内存映射到进程地址空间；
+
+    shmdt()：解除映射；
+
+    shmctl()：控制或删除共享内存段。
+
+3. 使用共享内存时为什么需要同步机制？
+
+    因为多个进程可能同时访问同一块共享内存，存在数据竞争（Race Condition），需要借助信号量、互斥锁或文件锁等同步机制来保证数据一致性。
+
+4. 使用信号量时应注意哪些问题？
+
+    所有 sem_wait() 都必须匹配一个 sem_post()；
+
+    死锁风险：多个信号量组合使用时要固定获取顺序；
+
+    避免在加锁后调用可能阻塞的系统调用；
+
+    错误检查不能忽略（如 sem_init() 失败）；
+
+    多进程使用 POSIX 信号量时要用 sem_open() 和 sem_unlink()。
+
+5. 信号量和互斥锁的区别：信号量可以用于控制对有限资源的访问（如计数值为 N，表示最多 N 个线程同时访问）。此外，信号量既可用于线程间同步，也可用于进程间同步。
+
+6. 怎么解决多线程中的同步问题？
+
+    (1) 条件变量（Condition Variable）
+    ```c
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+
+    pthread_mutex_lock(&mutex);
+    while (!ready) {          // 等待某个条件成立
+        pthread_cond_wait(&cond, &mutex);
+    }
+    pthread_mutex_unlock(&mutex);
+    ```
+    ```c
+    pthread_mutex_lock(&mutex);
+    ready = 1;
+    pthread_cond_signal(&cond);  // 通知等待线程
+    pthread_mutex_unlock(&mutex);
+    ```
+
+    (2) 信号量（Semaphore）
+
+    ```c
+    sem_t sem;
+    sem_init(&sem, 0, 0);  // 初始值为 0，表示还不能继续
+
+    // 线程 A：
+    sem_wait(&sem);  // 等待信号
+
+    // 线程 B：
+    sem_post(&sem);  // 发出信号
+    ```
+
+    (3) 屏障（Barrier）
+
+    ```c
+    pthread_barrier_t barrier;
+    pthread_barrier_init(&barrier, NULL, 4);  // 4 个线程到达后继续
+
+    // 所有线程：
+    pthread_barrier_wait(&barrier);
+    ```
+
 
 - **`int shmget(key_t key, size_t size, int shmflg);`**：创建或获取共享内存段。`key` 是共享内存的键值，`size` 是内存段大小（字节），`shmflg` 是标志位（如权限或创建标志）。成功返回共享内存标识符，失败返回 -1。
 
